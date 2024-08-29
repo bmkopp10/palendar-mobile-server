@@ -1,6 +1,6 @@
 import { Event } from '../models/eventModel';
 
-export interface EventRepository {
+export default interface EventRepository {
   createEvent(eventData: Omit<Event, '_id'>): Promise<Event>;
   getAllEvents(): Promise<Event[]>;
   getEventById(id: string): Promise<Event | null>;

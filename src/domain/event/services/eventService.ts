@@ -1,25 +1,41 @@
-import { EventRepositoryImpl } from '../repositories/eventRepositoryImpl';
-import { EventRepository } from '../repositories/eventRepository';
+import EventRepositoryImpl from '../repositories/eventRepositoryImpl';
+import EventRepository from '../repositories/eventRepository';
 import { Event } from '../models/eventModel';
+import { getEventEmitter } from '../../../common/config/dbConfig';
 
-const eventRepository: EventRepository = new EventRepositoryImpl();
+export default class EventService {
+  private eventRepository: EventRepository;
+  private eventEmitter = getEventEmitter();
 
-export const addEvent = async (eventData: Omit<Event, '_id'>): Promise<Event> => {
-  return await eventRepository.createEvent(eventData);
-};
+  constructor() {
+    this.eventRepository = new EventRepositoryImpl();
+    this.eventEmitter.on('repoChange', this.handleRepoChange.bind(this));
+  }
 
-export const fetchEvents = async (): Promise<Event[]> => {
-  return await eventRepository.getAllEvents();
-};
+  public async addEvent(eventData: Omit<Event, '_id'>): Promise<Event> {
+    return await this.eventRepository.createEvent(eventData);
+  }
 
-export const fetchEventById = async (id: string): Promise<Event | null> => {
-  return await eventRepository.getEventById(id);
-};
+  public async fetchEvents(): Promise<Event[]> {
+    return await this.eventRepository.getAllEvents();
+  }
 
-export const modifyEventById = async (id: string, updateData: Partial<Event>): Promise<Event | null> => {
-  return await eventRepository.updateEventById(id, updateData);
-};
+  public async fetchEventById(id: string): Promise<Event | null> {
+    return await this.eventRepository.getEventById(id);
+  }
 
-export const removeEventById = async (id: string): Promise<Event | null> => {
-  return await eventRepository.deleteEventById(id);
-};
+  public async modifyEventById(id: string, updateData: Partial<Event>): Promise<Event | null> {
+    return await this.eventRepository.updateEventById(id, updateData);
+  }
+
+  public async removeEventById(id: string): Promise<Event | null> {
+    return await this.eventRepository.deleteEventById(id);
+  }
+
+  async handleRepoChange(change: any) {
+    console.log('Service layer handling change:', change);
+    // Optionally, further processing
+    this.eventEmitter.emit('serviceChange', change); // Propagate to controller
+  }
+
+}
